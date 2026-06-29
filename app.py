@@ -7,6 +7,7 @@ from pymongo import MongoClient
 from pymongo.errors import PyMongoError, DuplicateKeyError
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
+import certifi
 
 load_dotenv()
 
@@ -17,7 +18,11 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 # ---------------------------------------------------------------------------
 # MongoDB Atlas connection
 # ---------------------------------------------------------------------------
-client = MongoClient(os.getenv("MONGODB_URI"))
+# tlsCAFile=certifi.where() fixes the common
+# "[SSL: TLSV1_ALERT_INTERNAL_ERROR]" handshake failure seen on some
+# Python/OpenSSL builds (and in many serverless environments) when the
+# system's default CA bundle doesn't satisfy Atlas's TLS handshake.
+client = MongoClient(os.getenv("MONGODB_URI"), tlsCAFile=certifi.where())
 db = client["learning_system"]
 
 # Collections (replacing the old SQLite tables)
