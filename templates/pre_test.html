@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Pre-Test Assessment{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <div class="test-header">
+        <h1>Pre-Test Assessment 📝</h1>
+        <p>Answer these questions to help us understand your current English level</p>
+    </div>
+    
+    <div id="testContent" class="test-content">
+        <!-- Questions will be loaded here -->
+    </div>
+    
+    <div id="testResult" class="test-result" style="display: none;">
+        <h2>Test Complete! 🎉</h2>
+        <div id="resultContent"></div>
+        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</div>
+
+<script>
+const questions = [
+    {
+        question: "What is the plural of 'cat'?",
+        options: ["cats", "cates", "cat's", "caties"],
+        correct: 0
+    },
+    {
+        question: "Choose the correct sentence:",
+        options: [
+            "I am happy.",
+            "I are happy.",
+            "I is happy.",
+            "I be happy."
+        ],
+        correct: 0
+    },
+    {
+        question: "What does 'dog' mean?",
+        options: [
+            "An animal that barks",
+            "A color",
+            "A fruit",
+            "A place"
+        ],
+        correct: 0
+    },
+    {
+        question: "Complete: The sun ___ in the east.",
+        options: ["rises", "rise", "rising", "rose"],
+        correct: 0
+    },
+    {
+        question: "Which is correct?",
+        options: [
+            "I have a book.",
+            "I has a book.",
+            "I having a book.",
+            "I are have a book."
+        ],
+        correct: 0
+    },
+    {
+        question: "What is the past tense of 'walk'?",
+        options: ["walked", "walking", "walks", "walk"],
+        correct: 0
+    },
+    {
+        question: "Choose the correct article: I saw ___ elephant.",
+        options: ["an", "a", "the", "no article"],
+        correct: 0
+    },
+    {
+        question: "What does 'beautiful' mean?",
+        options: [
+            "Very pretty",
+            "Very ugly",
+            "Very big",
+            "Very small"
+        ],
+        correct: 0
+    },
+    {
+        question: "Complete: She ___ to school every day.",
+        options: ["goes", "go", "going", "gone"],
+        correct: 0
+    },
+    {
+        question: "Which sentence is in past tense?",
+        options: [
+            "I played cricket yesterday.",
+            "I play cricket every day.",
+            "I will play cricket tomorrow.",
+            "I am playing cricket now."
+        ],
+        correct: 0
+    }
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+function loadQuestion() {
+    const testContent = document.getElementById('testContent');
+    
+    if (currentQuestion >= questions.length) {
+        submitTest();
+        return;
+    }
+    
+    const q = questions[currentQuestion];
+    
+    let html = `
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-number">Question ${currentQuestion + 1} of ${questions.length}</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${((currentQuestion + 1) / questions.length) * 100}%"></div>
+                </div>
+            </div>
+            
+            <h3 class="question-text">${q.question}</h3>
+            
+            <div class="options-container">
+    `;
+    
+    q.options.forEach((option, index) => {
+        html += `
+            <button class="option-btn" onclick="selectAnswer(${index})">
+                ${option}
+            </button>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    testContent.innerHTML = html;
+}
+
+function selectAnswer(selectedIndex) {
+    const q = questions[currentQuestion];
+    
+    if (selectedIndex === q.correct) {
+        score++;
+    }
+    
+    currentQuestion++;
+    setTimeout(loadQuestion, 300);
+}
+
+async function submitTest() {
+    const testContent = document.getElementById('testContent');
+    const testResult = document.getElementById('testResult');
+    
+    testContent.style.display = 'none';
+    
+    try {
+        const response = await fetch('/submit-pre-test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                score: score,
+                total: questions.length
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const percentage = (score / questions.length) * 100;
+            let levelBadge = '';
+            let levelColor = '';
+            
+            if (data.level === 'advanced') {
+                levelBadge = '🏆 Advanced';
+                levelColor = '#ffc107';
+            } else if (data.level === 'intermediate') {
+                levelBadge = '🥈 Intermediate';
+                levelColor = '#17a2b8';
+            } else {
+                levelBadge = '🥉 Beginner';
+                levelColor = '#28a745';
+            }
+            
+            document.getElementById('resultContent').innerHTML = `
+                <div class="result-card">
+                    <h3>Your Score: ${score}/${questions.length} (${percentage.toFixed(0)}%)</h3>
+                    <div class="level-badge" style="background-color: ${levelColor}">
+                        ${levelBadge}
+                    </div>
+                    <p>You've been assigned to the <strong>${data.level}</strong> level.</p>
+                    <p>Your personalized learning content will be tailored to this level!</p>
+                </div>
+            `;
+            
+            testResult.style.display = 'block';
+        }
+    } catch (error) {
+        alert('An error occurred. Please try again.');
+    }
+}
+
+// Load first question on page load
+window.onload = () => {
+    loadQuestion();
+};
+</script>
+{% endblock %}

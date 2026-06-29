@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Chat Practice{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>💬 Conversational Practice</h1>
+        <p>Practice English by chatting with AI tutor</p>
+    </div>
+    
+    <div class="chat-info">
+        <p>✍️ Write sentences in English and get instant feedback!</p>
+        <p>📝 Tips: Start with capital letter, end with punctuation, use proper grammar</p>
+    </div>
+    
+    <div class="chat-box">
+        <div id="chatMessages" class="chat-messages">
+            <div class="message bot-message">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <p>Hello! I'm your AI English tutor. Try writing a sentence in English, and I'll help you improve it!</p>
+                    <p class="message-example">Example: "I am learning English."</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" class="chat-input" 
+                   placeholder="Type your sentence here..." 
+                   onkeypress="handleKeyPress(event)">
+            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    
+    <div class="chat-stats">
+        <div class="stat-item">
+            <span class="stat-label">Messages Sent:</span>
+            <span id="messageCount" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Correct Sentences:</span>
+            <span id="correctCount" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Accuracy:</span>
+            <span id="accuracy" class="stat-value">0%</span>
+        </div>
+    </div>
+</div>
+
+<script>
+let messageCount = 0;
+let correctCount = 0;
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) {
+        alert('Please type a message!');
+        return;
+    }
+    
+    // Add user message to chat
+    addMessageToChat(message, 'user');
+    
+    // Clear input
+    input.value = '';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    try {
+        const response = await fetch('/chat-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        // Remove typing indicator
+        removeTypingIndicator();
+        
+        if (data.success) {
+            // Add bot response
+            addMessageToChat(data.response, 'bot', data.is_correct);
+            
+            // Update stats
+            messageCount++;
+            if (data.is_correct) {
+                correctCount++;
+            }
+            updateChatStats();
+        }
+    } catch (error) {
+        removeTypingIndicator();
+        addMessageToChat('Sorry, there was an error. Please try again.', 'bot', false);
+    }
+}
+
+function addMessageToChat(message, sender, isCorrect = null) {
+    const chatMessages = document.getElementById('chatMessages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    let icon = sender === 'user' ? '👤' : '🤖';
+    let statusIndicator = '';
+    
+    if (sender === 'bot' && isCorrect !== null) {
+        statusIndicator = isCorrect 
+            ? '<span class="status-badge correct">✓ Correct</span>' 
+            : '<span class="status-badge incorrect">✗ Needs improvement</span>';
+    }
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">${icon}</div>
+        <div class="message-content">
+            <p>${message}</p>
+            ${statusIndicator}
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const chatMessages = document.getElementById('chatMessages');
+    
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot-message typing-indicator';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+function updateChatStats() {
+    document.getElementById('messageCount').textContent = messageCount;
+    document.getElementById('correctCount').textContent = correctCount;
+    
+    const accuracy = messageCount > 0 ? ((correctCount / messageCount) * 100).toFixed(1) : 0;
+    document.getElementById('accuracy').textContent = accuracy + '%';
+}
+
+// Example sentences for user guidance
+const exampleSentences = [
+    "I am learning English.",
+    "The cat is sleeping.",
+    "I have a book.",
+    "She goes to school.",
+    "They are playing cricket."
+];
+
+function showExamples() {
+    alert('Try these example sentences:\n\n' + exampleSentences.join('\n'));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Post-Test{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <div class="test-header">
+        <h1>Post-Test Assessment 🎯</h1>
+        <p>Let's see how much you've improved!</p>
+    </div>
+    
+    <div id="testContent" class="test-content">
+        <!-- Questions will be loaded here -->
+    </div>
+    
+    <div id="testResult" class="test-result" style="display: none;">
+        <h2>🎉 Test Complete!</h2>
+        <div id="resultContent"></div>
+        <div class="result-actions">
+            <a href="/feedback" class="btn btn-primary">View Detailed Feedback</a>
+            <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<script>
+const postTestQuestions = [
+    {
+        question: "Choose the correct plural form: child → ?",
+        options: ["childs", "children", "childes", "child's"],
+        correct: 1
+    },
+    {
+        question: "Which sentence is grammatically correct?",
+        options: [
+            "She don't like pizza.",
+            "She doesn't like pizza.",
+            "She isn't like pizza.",
+            "She not like pizza."
+        ],
+        correct: 1
+    },
+    {
+        question: "What is the past tense of 'go'?",
+        options: ["goed", "went", "gone", "going"],
+        correct: 1
+    },
+    {
+        question: "Choose the correct sentence:",
+        options: [
+            "I have been learning English since two years.",
+            "I have been learning English for two years.",
+            "I am learning English since two years.",
+            "I learning English for two years."
+        ],
+        correct: 1
+    },
+    {
+        question: "Fill in the blank: If it ___ tomorrow, we will stay home.",
+        options: ["rain", "rains", "rained", "raining"],
+        correct: 1
+    },
+    {
+        question: "Which word is a synonym of 'intelligent'?",
+        options: ["foolish", "smart", "lazy", "slow"],
+        correct: 1
+    },
+    {
+        question: "Choose the correct comparative form: good → ?",
+        options: ["gooder", "more good", "better", "best"],
+        correct: 2
+    },
+    {
+        question: "What does 'accomplish' mean?",
+        options: [
+            "To fail at something",
+            "To successfully complete something",
+            "To start something",
+            "To forget something"
+        ],
+        correct: 1
+    },
+    {
+        question: "Which sentence uses the present perfect tense correctly?",
+        options: [
+            "I have finished my homework.",
+            "I am finish my homework.",
+            "I finished have my homework.",
+            "I finishing my homework."
+        ],
+        correct: 0
+    },
+    {
+        question: "Choose the correct article: I saw ___ elephant at the zoo.",
+        options: ["a", "an", "the", "no article"],
+        correct: 1
+    }
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+function loadQuestion() {
+    const testContent = document.getElementById('testContent');
+    
+    if (currentQuestion >= postTestQuestions.length) {
+        submitTest();
+        return;
+    }
+    
+    const q = postTestQuestions[currentQuestion];
+    
+    let html = `
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-number">Question ${currentQuestion + 1} of ${postTestQuestions.length}</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${((currentQuestion + 1) / postTestQuestions.length) * 100}%"></div>
+                </div>
+            </div>
+            
+            <h3 class="question-text">${q.question}</h3>
+            
+            <div class="options-container">
+    `;
+    
+    q.options.forEach((option, index) => {
+        html += `
+            <button class="option-btn" onclick="selectAnswer(${index})">
+                ${option}
+            </button>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    testContent.innerHTML = html;
+}
+
+function selectAnswer(selectedIndex) {
+    const q = postTestQuestions[currentQuestion];
+    
+    if (selectedIndex === q.correct) {
+        score++;
+    }
+    
+    currentQuestion++;
+    setTimeout(loadQuestion, 300);
+}
+
+async function submitTest() {
+    const testContent = document.getElementById('testContent');
+    const testResult = document.getElementById('testResult');
+    
+    testContent.style.display = 'none';
+    
+    try {
+        const response = await fetch('/submit-post-test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                score: score,
+                total: postTestQuestions.length
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const percentage = (score / postTestQuestions.length) * 100;
+            
+            let improvementText = '';
+            let improvementClass = '';
+            
+            if (data.improvement > 0) {
+                improvementText = `+${data.improvement.toFixed(1)}%`;
+                improvementClass = 'improvement-positive';
+            } else if (data.improvement < 0) {
+                improvementText = `${data.improvement.toFixed(1)}%`;
+                improvementClass = 'improvement-negative';
+            } else {
+                improvementText = 'No change';
+                improvementClass = 'improvement-neutral';
+            }
+            
+            document.getElementById('resultContent').innerHTML = `
+                <div class="result-card-large">
+                    <div class="result-score">
+                        <h3>Your Score</h3>
+                        <div class="score-circle">
+                            <span class="score-number">${score}/${postTestQuestions.length}</span>
+                            <span class="score-percentage">${percentage.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-improvement ${improvementClass}">
+                        <h3>Improvement</h3>
+                        <div class="improvement-value">${improvementText}</div>
+                        <p>Compared to your pre-test</p>
+                    </div>
+                    
+                    <div class="result-message">
+                        ${getResultMessage(data.improvement)}
+                    </div>
+                </div>
+            `;
+            
+            testResult.style.display = 'block';
+        }
+    } catch (error) {
+        alert('An error occurred. Please try again.');
+    }
+}
+
+function getResultMessage(improvement) {
+    if (improvement >= 20) {
+        return `
+            <div class="message-excellent">
+                <h4>🎉 Outstanding Progress!</h4>
+                <p>You've shown tremendous improvement! Your hard work is paying off!</p>
+            </div>
+        `;
+    } else if (improvement >= 10) {
+        return `
+            <div class="message-great">
+                <h4>👏 Great Improvement!</h4>
+                <p>You're making excellent progress. Keep up the good work!</p>
+            </div>
+        `;
+    } else if (improvement > 0) {
+        return `
+            <div class="message-good">
+                <h4>✓ Good Progress!</h4>
+                <p>You're heading in the right direction. Continue practicing!</p>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="message-keep-going">
+                <h4>💪 Keep Learning!</h4>
+                <p>Learning takes time. Review the feedback and keep practicing!</p>
+            </div>
+        `;
+    }
+}
+
+// Load first question on page load
+window.onload = () => {
+    loadQuestion();
+};
+</script>
+{% endblock %}

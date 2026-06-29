@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Module{% endblock %}
+
+{% block content %}
+<div class="learning-container">
+    <div class="learning-header">
+        <h1>📚 Personalized Learning</h1>
+        <p>Your current level: <span class="level-badge">{{ level }}</span></p>
+    </div>
+    
+    <div class="learning-tabs">
+        <button class="tab-btn active" onclick="switchTab('vocabulary')">Vocabulary</button>
+        <button class="tab-btn" onclick="switchTab('grammar')">Grammar</button>
+    </div>
+    
+    <div id="vocabularyTab" class="tab-content active">
+        <div class="content-header">
+            <h2>Vocabulary Learning</h2>
+            <button class="btn btn-primary" onclick="loadVocabulary()">Load New Words</button>
+        </div>
+        
+        <div id="vocabularyContent" class="learning-cards">
+            <p class="info-text">Click "Load New Words" to start learning!</p>
+        </div>
+    </div>
+    
+    <div id="grammarTab" class="tab-content">
+        <div class="content-header">
+            <h2>Grammar Rules</h2>
+            <button class="btn btn-primary" onclick="loadGrammar()">Load Grammar</button>
+        </div>
+        
+        <div id="grammarContent" class="learning-cards">
+            <p class="info-text">Click "Load Grammar" to learn grammar rules!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentLevel = "{{ level }}";
+
+function switchTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(t => {
+        t.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+    });
+    
+    // Show selected tab
+    if (tab === 'vocabulary') {
+        document.getElementById('vocabularyTab').classList.add('active');
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    } else {
+        document.getElementById('grammarTab').classList.add('active');
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    }
+}
+
+async function loadVocabulary() {
+    try {
+        const response = await fetch('/get-learning-content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                topic: 'vocabulary',
+                difficulty: currentLevel
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.content.vocabulary) {
+            displayVocabulary(data.content.vocabulary);
+        }
+    } catch (error) {
+        alert('Error loading vocabulary');
+    }
+}
+
+async function loadGrammar() {
+    try {
+        const response = await fetch('/get-learning-content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                topic: 'grammar',
+                difficulty: currentLevel
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.content.grammar) {
+            displayGrammar(data.content.grammar);
+        }
+    } catch (error) {
+        alert('Error loading grammar');
+    }
+}
+
+function displayVocabulary(words) {
+    const container = document.getElementById('vocabularyContent');
+    
+    let html = '';
+    words.forEach((word, index) => {
+        html += `
+            <div class="word-card" style="animation-delay: ${index * 0.1}s">
+                <div class="word-header">
+                    <h3 class="word-title">${word.word}</h3>
+                    <button class="btn-icon" onclick="speakWord('${word.word}')">🔊</button>
+                </div>
+                <p class="word-definition"><strong>Definition:</strong> ${word.definition}</p>
+                <p class="word-example"><strong>Example:</strong> ${word.example}</p>
+                <button class="btn btn-sm btn-success" onclick="markLearned('${word.word}', '${word.definition}')">
+                    ✓ Mark as Learned
+                </button>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function displayGrammar(rules) {
+    const container = document.getElementById('grammarContent');
+    
+    let html = '';
+    rules.forEach((rule, index) => {
+        html += `
+            <div class="grammar-card" style="animation-delay: ${index * 0.1}s">
+                <h3 class="grammar-title">${rule.rule}</h3>
+                <p class="grammar-explanation">${rule.explanation}</p>
+                <div class="grammar-example">
+                    <strong>Example:</strong> ${rule.example}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function speakWord(word) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+    } else {
+        alert('Text-to-speech not supported in your browser');
+    }
+}
+
+function markLearned(word, definition) {
+    // In a real app, you'd save this to the database
+    alert(`Great! You've learned the word "${word}"! Keep it up! 🎉`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ session.get('full_name') }}! 👋</h1>
+        <p>Let's continue your learning journey</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+                <h3>{{ points[2] if points else 0 }}</h3>
+                <p>Total Points</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+                <h3>Level {{ points[3] if points else 1 }}</h3>
+                <p>Current Level</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-info">
+                <h3>{{ points[5] if points else 0 }} days</h3>
+                <p>Learning Streak</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div class="stat-info">
+                <h3>{{ user[5] }}</h3>
+                <p>Proficiency Level</p>
+            </div>
+        </div>
+    </div>
+    
+    {% if not pre_test_completed %}
+    <div class="alert alert-info">
+        <h3>📝 Start Your Journey!</h3>
+        <p>Take the pre-test to assess your current English level and get personalized content.</p>
+        <a href="/pre-test" class="btn btn-primary">Take Pre-Test</a>
+    </div>
+    {% endif %}
+    
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="action-grid">
+            <a href="/pre-test" class="action-card {% if pre_test_completed %}completed{% endif %}">
+                <div class="action-icon">📝</div>
+                <h3>Pre-Test</h3>
+                <p>{% if pre_test_completed %}Completed ✓{% else %}Start assessment{% endif %}</p>
+            </a>
+            
+            <a href="/learning" class="action-card">
+                <div class="action-icon">📖</div>
+                <h3>Learn</h3>
+                <p>Vocabulary & Grammar</p>
+            </a>
+            
+            <a href="/practice" class="action-card">
+                <div class="action-icon">✏️</div>
+                <h3>Practice</h3>
+                <p>Interactive Exercises</p>
+            </a>
+            
+            <a href="/chat" class="action-card">
+                <div class="action-icon">💬</div>
+                <h3>Chat Practice</h3>
+                <p>Conversational Learning</p>
+            </a>
+            
+            <a href="/progress" class="action-card">
+                <div class="action-icon">📊</div>
+                <h3>Progress</h3>
+                <p>Track Your Growth</p>
+            </a>
+            
+            <a href="/post-test" class="action-card">
+                <div class="action-icon">🎯</div>
+                <h3>Post-Test</h3>
+                <p>Measure Improvement</p>
+            </a>
+            
+            <a href="/feedback" class="action-card">
+                <div class="action-icon">💡</div>
+                <h3>Feedback</h3>
+                <p>Get Recommendations</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

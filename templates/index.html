@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Adaptive Learning System{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to AI-Powered English Learning</h1>
+        <p class="hero-subtitle">Personalized learning that adapts to your pace</p>
+        
+        <div class="hero-features">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Personalized Learning</h3>
+                <p>Content adapts to your skill level</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Interactive Chat</h3>
+                <p>Practice with AI conversation</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Gamification</h3>
+                <p>Earn points and badges</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Track Progress</h3>
+                <p>See your improvement over time</p>
+            </div>
+        </div>
+        
+        <div class="hero-buttons">
+            <a href="/register" class="btn btn-primary btn-large">Get Started</a>
+            <a href="/login" class="btn btn-secondary btn-large">Login</a>
+            <a href="/admin-login" class="btn btn-admin btn-large">Admin Login</a>
+        </div>
+    </div>
+</div>
+
+<div class="info-section">
+    <h2>How It Works</h2>
+    <div class="steps-container">
+        <div class="step">
+            <div class="step-number">1</div>
+            <h3>Take Pre-Test</h3>
+            <p>We assess your current English level</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <h3>Personalized Learning</h3>
+            <p>Get content matched to your level</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <h3>Practice & Chat</h3>
+            <p>Improve through interactive exercises</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">4</div>
+            <h3>Track Progress</h3>
+            <p>See your improvement with analytics</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback & Recommendations{% endblock %}
+
+{% block content %}
+<div class="feedback-container">
+    <div class="feedback-header">
+        <h1>💡 Personalized Feedback</h1>
+        <p>Insights and recommendations for your learning journey</p>
+    </div>
+    
+    <div class="feedback-overview">
+        <div class="overview-card">
+            <h3>📚 Vocabulary Progress</h3>
+            <div class="stat-large">{{ feedback.vocabulary_learned }}</div>
+            <p>Words Learned</p>
+        </div>
+        
+        <div class="overview-card">
+            <h3>✍️ Grammar Accuracy</h3>
+            <div class="stat-large">{{ feedback.chat_accuracy|round }}%</div>
+            <p>Correct Sentences</p>
+        </div>
+    </div>
+    
+    <div class="feedback-sections">
+        <div class="feedback-section strengths-section">
+            <h2>💪 Your Strengths</h2>
+            {% if feedback.strengths %}
+                <ul class="feedback-list">
+                    {% for strength in feedback.strengths %}
+                        <li class="feedback-item success">
+                            <span class="feedback-icon">✓</span>
+                            {{ strength }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">Keep practicing to discover your strengths!</p>
+            {% endif %}
+        </div>
+        
+        <div class="feedback-section weaknesses-section">
+            <h2>🎯 Areas for Improvement</h2>
+            {% if feedback.weaknesses %}
+                <ul class="feedback-list">
+                    {% for weakness in feedback.weaknesses %}
+                        <li class="feedback-item warning">
+                            <span class="feedback-icon">⚠</span>
+                            {{ weakness }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">Great job! No major weaknesses identified.</p>
+            {% endif %}
+        </div>
+        
+        <div class="feedback-section recommendations-section">
+            <h2>📋 Personalized Recommendations</h2>
+            {% if feedback.recommendations %}
+                <ul class="feedback-list">
+                    {% for recommendation in feedback.recommendations %}
+                        <li class="feedback-item info">
+                            <span class="feedback-icon">💡</span>
+                            {{ recommendation }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">Keep learning to get personalized recommendations!</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="learning-path">
+        <h2>🛤️ Your Recommended Learning Path</h2>
+        <div class="path-steps">
+            <div class="path-step {% if feedback.vocabulary_learned < 20 %}active{% else %}completed{% endif %}">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Build Vocabulary Foundation</h4>
+                    <p>Learn 20+ essential words</p>
+                    <div class="step-progress">
+                        <div class="step-progress-bar" style="width: {{ (feedback.vocabulary_learned / 20 * 100) if feedback.vocabulary_learned < 20 else 100 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="path-step {% if feedback.vocabulary_learned >= 20 and feedback.chat_accuracy < 70 %}active{% elif feedback.chat_accuracy >= 70 %}completed{% endif %}">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Master Grammar Basics</h4>
+                    <p>Achieve 70% grammar accuracy</p>
+                    <div class="step-progress">
+                        <div class="step-progress-bar" style="width: {{ (feedback.chat_accuracy / 70 * 100) if feedback.chat_accuracy < 70 else 100 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="path-step {% if feedback.vocabulary_learned >= 20 and feedback.chat_accuracy >= 70 %}active{% endif %}">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Advanced Practice</h4>
+                    <p>Complex sentences and conversations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="action-suggestions">
+        <h2>🚀 Take Action Now</h2>
+        <div class="suggestion-cards">
+            <a href="/learning" class="suggestion-card">
+                <div class="suggestion-icon">📖</div>
+                <h4>Learn New Words</h4>
+                <p>Expand your vocabulary</p>
+            </a>
+            
+            <a href="/practice" class="suggestion-card">
+                <div class="suggestion-icon">✏️</div>
+                <h4>Practice Exercises</h4>
+                <p>Reinforce your knowledge</p>
+            </a>
+            
+            <a href="/chat" class="suggestion-card">
+                <div class="suggestion-icon">💬</div>
+                <h4>Chat Practice</h4>
+                <p>Improve your grammar</p>
+            </a>
+            
+            <a href="/post-test" class="suggestion-card">
+                <div class="suggestion-icon">🎯</div>
+                <h4>Take Post-Test</h4>
+                <p>Measure your progress</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

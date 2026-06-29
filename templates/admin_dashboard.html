@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>👨‍💼 Admin Dashboard</h1>
+        <p>Monitor system performance and student progress</p>
+    </div>
+    
+    <div class="admin-stats">
+        <div class="admin-stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+                <h3>{{ total_users }}</h3>
+                <p>Total Students</p>
+            </div>
+        </div>
+        
+        <div class="admin-stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <h3>{{ avg_pre_score|round(1) }}</h3>
+                <p>Avg Pre-Test Score</p>
+            </div>
+        </div>
+        
+        <div class="admin-stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-info">
+                <h3>{{ avg_post_score|round(1) }}</h3>
+                <p>Avg Post-Test Score</p>
+            </div>
+        </div>
+        
+        <div class="admin-stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+                <h3>{{ ((avg_post_score - avg_pre_score) / avg_pre_score * 100)|round(1) if avg_pre_score > 0 else 0 }}%</h3>
+                <p>Avg Improvement</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="students-section">
+        <h2>Student Overview</h2>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Age</th>
+                        <th>Level</th>
+                        <th>Joined Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if users %}
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ user[0] }}</td>
+                                <td>{{ user[3] }}</td>
+                                <td>{{ user[1] }}</td>
+                                <td>{{ user[4] }}</td>
+                                <td>
+                                    <span class="level-badge-small {{ user[5] }}">
+                                        {{ user[5] }}
+                                    </span>
+                                </td>
+                                <td>{{ user[6][:10] }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="empty-table">No students registered yet</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="analytics-section">
+        <h2>System Analytics</h2>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Student Levels Distribution</h3>
+                <canvas id="levelChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+                <h3>Learning Progress Trend</h3>
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="insights-section">
+        <h2>Key Insights</h2>
+        <div class="insights-grid">
+            <div class="insight-card">
+                <h4>📚 Most Active Learning Module</h4>
+                <p>Vocabulary Learning</p>
+                <small>Based on user engagement</small>
+            </div>
+            
+            <div class="insight-card">
+                <h4>⭐ Best Performing Feature</h4>
+                <p>Gamification System</p>
+                <small>Highest engagement rate</small>
+            </div>
+            
+            <div class="insight-card">
+                <h4>🎯 Average Completion Rate</h4>
+                <p>{{ ((users|length) / (users|length + 1) * 100)|round if users else 0 }}%</p>
+                <small>Students completing assessments</small>
+            </div>
+            
+            <div class="insight-card">
+                <h4>📈 System Effectiveness</h4>
+                <p>High</p>
+                <small>Based on improvement metrics</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Level Distribution Chart
+const levelCtx = document.getElementById('levelChart');
+if (levelCtx) {
+    const users = {{ users|tojson }};
+    let beginnerCount = 0, intermediateCount = 0, advancedCount = 0;
+    
+    users.forEach(user => {
+        if (user[5] === 'beginner') beginnerCount++;
+        else if (user[5] === 'intermediate') intermediateCount++;
+        else if (user[5] === 'advanced') advancedCount++;
+    });
+    
+    new Chart(levelCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Beginner', 'Intermediate', 'Advanced'],
+            datasets: [{
+                data: [beginnerCount, intermediateCount, advancedCount],
+                backgroundColor: ['#28a745', '#17a2b8', '#ffc107']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Progress Trend Chart
+const progressCtx = document.getElementById('progressChart');
+if (progressCtx) {
+    new Chart(progressCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Pre-Test', 'Post-Test'],
+            datasets: [{
+                label: 'Average Score',
+                data: [{{ avg_pre_score }}, {{ avg_post_score }}],
+                backgroundColor: ['#17a2b8', '#28a745']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

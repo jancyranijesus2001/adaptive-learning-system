@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Practice{% endblock %}
+
+{% block content %}
+<div class="practice-container">
+    <div class="practice-header">
+        <h1>✏️ Practice Zone</h1>
+        <p>Strengthen your skills with interactive exercises</p>
+    </div>
+    
+    <div class="practice-stats">
+        <div class="stat-mini">
+            <span id="correctCount">0</span> Correct
+        </div>
+        <div class="stat-mini">
+            <span id="totalAttempts">0</span> Attempts
+        </div>
+        <div class="stat-mini">
+            Points: <span id="pointsEarned">0</span>
+        </div>
+    </div>
+    
+    <div class="practice-content">
+        <div id="exerciseContainer">
+            <!-- Exercise will be loaded here -->
+        </div>
+        
+        <div class="practice-controls">
+            <button class="btn btn-primary" onclick="loadNewExercise()">New Exercise</button>
+            <button class="btn btn-secondary" onclick="showHint()">💡 Hint</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let correctCount = 0;
+let totalAttempts = 0;
+let pointsEarned = 0;
+let currentExercise = null;
+
+const exercises = {
+    fillBlanks: [
+        {
+            sentence: "I ___ a student.",
+            options: ["am", "is", "are", "be"],
+            correct: 0,
+            hint: "Use 'am' with 'I'"
+        },
+        {
+            sentence: "She ___ to school every day.",
+            options: ["go", "goes", "going", "gone"],
+            correct: 1,
+            hint: "Add 's' for third person singular (he, she, it)"
+        },
+        {
+            sentence: "They ___ playing cricket.",
+            options: ["is", "am", "are", "be"],
+            correct: 2,
+            hint: "Use 'are' with 'they'"
+        },
+        {
+            sentence: "The cat ___ on the mat.",
+            options: ["sit", "sits", "sitting", "sat"],
+            correct: 1,
+            hint: "Present tense, third person singular"
+        },
+        {
+            sentence: "I ___ a book yesterday.",
+            options: ["read", "reads", "reading", "readed"],
+            correct: 0,
+            hint: "Past tense of 'read' looks the same but sounds different"
+        }
+    ],
+    
+    wordMatch: [
+        {
+            word: "happy",
+            options: ["sad", "joyful", "angry", "tired"],
+            correct: 1,
+            hint: "Find the word with similar meaning"
+        },
+        {
+            word: "big",
+            options: ["small", "large", "tiny", "little"],
+            correct: 1,
+            hint: "Find the synonym"
+        },
+        {
+            word: "hot",
+            options: ["cold", "warm", "freezing", "cool"],
+            correct: 1,
+            hint: "Similar temperature but less intense"
+        }
+    ],
+    
+    sentenceCorrection: [
+        {
+            sentence: "I are happy.",
+            correct: "I am happy.",
+            hint: "Check subject-verb agreement with 'I'"
+        },
+        {
+            sentence: "She go to school.",
+            correct: "She goes to school.",
+            hint: "Add 's' for third person singular"
+        },
+        {
+            sentence: "They is playing.",
+            correct: "They are playing.",
+            hint: "Use 'are' with plural subjects"
+        }
+    ]
+};
+
+function loadNewExercise() {
+    const types = ['fillBlanks', 'wordMatch', 'sentenceCorrection'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    
+    const exerciseSet = exercises[randomType];
+    currentExercise = exerciseSet[Math.floor(Math.random() * exerciseSet.length)];
+    currentExercise.type = randomType;
+    
+    displayExercise(currentExercise);
+}
+
+function displayExercise(exercise) {
+    const container = document.getElementById('exerciseContainer');
+    
+    let html = '';
+    
+    if (exercise.type === 'fillBlanks') {
+        html = `
+            <div class="exercise-card">
+                <h3>Fill in the Blank</h3>
+                <p class="exercise-question">${exercise.sentence}</p>
+                <div class="options-grid">
+                    ${exercise.options.map((option, index) => `
+                        <button class="option-btn-practice" onclick="checkAnswer(${index}, ${exercise.correct})">
+                            ${option}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else if (exercise.type === 'wordMatch') {
+        html = `
+            <div class="exercise-card">
+                <h3>Find the Synonym</h3>
+                <p class="exercise-question">Which word means the same as: <strong>${exercise.word}</strong>?</p>
+                <div class="options-grid">
+                    ${exercise.options.map((option, index) => `
+                        <button class="option-btn-practice" onclick="checkAnswer(${index}, ${exercise.correct})">
+                            ${option}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else if (exercise.type === 'sentenceCorrection') {
+        html = `
+            <div class="exercise-card">
+                <h3>Correct the Sentence</h3>
+                <p class="exercise-question">Wrong: ${exercise.sentence}</p>
+                <input type="text" id="correctionInput" class="correction-input" 
+                       placeholder="Type the correct sentence...">
+                <button class="btn btn-primary" onclick="checkCorrection()">Check Answer</button>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+function checkAnswer(selectedIndex, correctIndex) {
+    totalAttempts++;
+    
+    const buttons = document.querySelectorAll('.option-btn-practice');
+    
+    if (selectedIndex === correctIndex) {
+        buttons[selectedIndex].classList.add('correct');
+        correctCount++;
+        pointsEarned += 10;
+        
+        setTimeout(() => {
+            showFeedback(true);
+            updateStats();
+        }, 500);
+    } else {
+        buttons[selectedIndex].classList.add('incorrect');
+        buttons[correctIndex].classList.add('correct');
+        
+        setTimeout(() => {
+            showFeedback(false);
+            updateStats();
+        }, 1000);
+    }
+    
+    buttons.forEach(btn => btn.disabled = true);
+}
+
+function checkCorrection() {
+    const userAnswer = document.getElementById('correctionInput').value.trim().toLowerCase();
+    const correctAnswer = currentExercise.correct.toLowerCase();
+    
+    totalAttempts++;
+    
+    if (userAnswer === correctAnswer) {
+        correctCount++;
+        pointsEarned += 15;
+        showFeedback(true);
+    } else {
+        showFeedback(false, `Correct answer: ${currentExercise.correct}`);
+    }
+    
+    updateStats();
+}
+
+function showFeedback(isCorrect, message = '') {
+    const feedback = document.createElement('div');
+    feedback.className = `feedback-popup ${isCorrect ? 'success' : 'error'}`;
+    feedback.innerHTML = isCorrect 
+        ? '🎉 Correct! Well done! +10 points' 
+        : `❌ Not quite right. ${message}`;
+    
+    document.body.appendChild(feedback);
+    
+    setTimeout(() => {
+        feedback.remove();
+    }, 3000);
+}
+
+function showHint() {
+    if (currentExercise && currentExercise.hint) {
+        alert('💡 Hint: ' + currentExercise.hint);
+    } else {
+        alert('No hint available for this exercise');
+    }
+}
+
+function updateStats() {
+    document.getElementById('correctCount').textContent = correctCount;
+    document.getElementById('totalAttempts').textContent = totalAttempts;
+    document.getElementById('pointsEarned').textContent = pointsEarned;
+}
+
+// Load first exercise on page load
+window.onload = () => {
+    loadNewExercise();
+};
+</script>
+{% endblock %}

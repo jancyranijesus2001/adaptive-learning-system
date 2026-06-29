@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Progress Tracking{% endblock %}
+
+{% block content %}
+<div class="progress-container">
+    <div class="progress-header">
+        <h1>📊 Your Learning Progress</h1>
+        <p>Track your improvement and achievements</p>
+    </div>
+    
+    <div class="progress-overview">
+        <div class="progress-card">
+            <h3>🏆 Gamification Stats</h3>
+            <div class="stats-grid-small">
+                <div class="stat">
+                    <span class="stat-number">{{ points[2] if points else 0 }}</span>
+                    <span class="stat-label">Total Points</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">Level {{ points[3] if points else 1 }}</span>
+                    <span class="stat-label">Current Level</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">{{ points[5] if points else 0 }}</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+            </div>
+            
+            <div class="level-progress">
+                <div class="level-bar">
+                    <div class="level-fill" style="width: {{ ((points[2] if points else 0) % 100) }}%"></div>
+                </div>
+                <p class="level-text">{{ 100 - ((points[2] if points else 0) % 100) }} points to next level</p>
+            </div>
+        </div>
+        
+        <div class="progress-card">
+            <h3>📚 Vocabulary Progress</h3>
+            <div class="vocab-stats">
+                <p><strong>Words Learned:</strong> {{ vocabulary|length }}</p>
+                {% if vocabulary %}
+                    <div class="word-list">
+                        {% for word in vocabulary[:5] %}
+                            <div class="word-item">
+                                <span class="word">{{ word[2] }}</span>
+                                <span class="mastery-level">Mastery: {{ word[5] }}/5</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if vocabulary|length > 5 %}
+                        <p class="more-text">+ {{ vocabulary|length - 5 }} more words</p>
+                    {% endif %}
+                {% else %}
+                    <p class="empty-state">No vocabulary learned yet. Start learning!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="progress-chart-section">
+        <h2>Learning Activity</h2>
+        <div class="chart-container">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="achievements-section">
+        <h2>🏅 Achievements</h2>
+        <div class="achievements-grid">
+            <div class="achievement-card {% if points and points[2] >= 50 %}unlocked{% endif %}">
+                <div class="achievement-icon">🌟</div>
+                <h4>First Steps</h4>
+                <p>Earn 50 points</p>
+            </div>
+            
+            <div class="achievement-card {% if points and points[2] >= 100 %}unlocked{% endif %}">
+                <div class="achievement-icon">⭐</div>
+                <h4>Rising Star</h4>
+                <p>Earn 100 points</p>
+            </div>
+            
+            <div class="achievement-card {% if points and points[5] >= 3 %}unlocked{% endif %}">
+                <div class="achievement-icon">🔥</div>
+                <h4>On Fire</h4>
+                <p>3-day streak</p>
+            </div>
+            
+            <div class="achievement-card {% if points and points[5] >= 7 %}unlocked{% endif %}">
+                <div class="achievement-icon">💪</div>
+                <h4>Dedicated</h4>
+                <p>7-day streak</p>
+            </div>
+            
+            <div class="achievement-card {% if vocabulary and vocabulary|length >= 20 %}unlocked{% endif %}">
+                <div class="achievement-icon">📖</div>
+                <h4>Word Master</h4>
+                <p>Learn 20 words</p>
+            </div>
+            
+            <div class="achievement-card {% if vocabulary and vocabulary|length >= 50 %}unlocked{% endif %}">
+                <div class="achievement-icon">🎓</div>
+                <h4>Scholar</h4>
+                <p>Learn 50 words</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recent-activity">
+        <h2>Recent Activity</h2>
+        {% if progress %}
+            <div class="activity-list">
+                {% for item in progress %}
+                    <div class="activity-item">
+                        <div class="activity-icon">📝</div>
+                        <div class="activity-details">
+                            <h4>{{ item[2] }}</h4>
+                            <p>Difficulty: {{ item[3] }} | Accuracy: {{ (item[4] / item[5] * 100)|round if item[5] > 0 else 0 }}%</p>
+                            <small>Last practiced: {{ item[6] }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-state">No activity yet. Start learning to see your progress!</p>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Create progress chart
+const ctx = document.getElementById('progressChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+                label: 'Points Earned',
+                data: [{{ points[2] // 4 if points else 0 }}, 
+                       {{ points[2] // 3 if points else 0 }}, 
+                       {{ points[2] // 2 if points else 0 }}, 
+                       {{ points[2] if points else 0 }}],
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
