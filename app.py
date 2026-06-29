@@ -4,7 +4,10 @@ import sqlite3
 import json
 import random
 import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
