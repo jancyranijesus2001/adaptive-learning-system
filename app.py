@@ -5,6 +5,7 @@ import json
 import random
 import os
 from dotenv import load_dotenv
+from pymongo import MongoClient
 
 
 load_dotenv()
@@ -13,9 +14,9 @@ app.secret_key = 'your-secret-key-change-this-in-production'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Database initialization
-def init_db():
-    conn = sqlite3.connect('database/learning_system.db')
-    c = conn.cursor()
+client = MongoClient(os.getenv("MONGODB_URI"))
+
+db = client["learning_system"]
     
     # Users table
     c.execute('''CREATE TABLE IF NOT EXISTS users (
